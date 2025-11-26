@@ -1,0 +1,32 @@
+/* Estilo para días con citas */
+.marked-day {
+  background-color: #0ea5e9 !important; /* cyan-500 */
+  color: white !important;
+  border-radius: 50%;
+}
+
+/* Calendario más atractivo */
+.react-calendar {
+  background-color: #1f2937 !important; /* gray-800 */
+  border: none !important;
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.react-calendar__navigation button {
+  background: none !important;
+  color: white !important;
+}
+
+.react-calendar__month-view__days__day {
+  font-size: 1rem;
+  padding: 12px;
+}
+
+.react-calendar__tile {
+  border-radius: 8px;
+}
+
+.react-calendar__tile:hover {
+  background-color: #374151 !important; /* gray-700 */
+}
