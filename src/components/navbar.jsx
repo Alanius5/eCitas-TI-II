@@ -23,15 +23,7 @@ export default function Navbar() {
           <a href="#contact" className="hover:text-cyan-400">Contacto</a>
         </li>
 
-        {/* 🔹 Botón temporal al Dashboard */}
-        <li>
-          <Link
-            to="/dashboard"
-            className="bg-white text-cyan-700 font-semibold px-4 py-2 rounded-full hover:bg-cyan-100 transition"
-          >
-            Dashboard
-          </Link>
-        </li>
+     
       </ul>
     </nav>
   );
