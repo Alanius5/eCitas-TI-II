@@ -5,6 +5,7 @@ import "react-calendar/dist/Calendar.css";
 import "./calendarCustom.css";
 import PatientsSection from "./PatientsSection";
 import PatientView from "./PatientView";
+import SystemModal from "../../components/SystemModal";
 
 function AgendaSection({
   role,
@@ -231,6 +232,26 @@ export default function Dashboard() {
   const [status, setStatus] = useState("programada");
   const [notes, setNotes] = useState("");
   const [toast, setToast] = useState(null);
+  const [modalConfig, setModalConfig] = useState(null);
+
+  const showConfirm = (message, title = "Confirmar", confirmText = "Sí", cancelText = "No") => {
+    return new Promise((resolve) => {
+      setModalConfig({
+        message,
+        title,
+        confirmText,
+        cancelText,
+        onConfirm: () => {
+          resolve(true);
+          setModalConfig(null);
+        },
+        onCancel: () => {
+          resolve(false);
+          setModalConfig(null);
+        },
+      });
+    });
+  };
 
   const showToast = (message, type = "info") => {
     setToast({ message, type });
@@ -252,7 +273,7 @@ export default function Dashboard() {
 
   const minDateTime = getMinDateTimeLocalString();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!name || !dateTime || !reason || !doctorType) {
@@ -268,14 +289,32 @@ export default function Dashboard() {
       return;
     }
 
-    const possibleDoubleBooking = appointments.some(
+    const patientDoubleBooking = appointments.some(
       (a) => a.name === name && a.dateTime === dateTime
     );
 
-    if (possibleDoubleBooking) {
-      const proceed = window.confirm(
-        "Este paciente ya tiene una cita en ese horario. ¿Deseas continuar?"
+    const doctorDoubleBooking = appointments.some(
+      (a) => a.doctorType === doctorType && a.dateTime === dateTime
+    );
+
+    // Prevent booking the same doctor at the exact same date/time
+    if (doctorDoubleBooking) {
+      showToast(
+        "No se puede agendar: el doctor ya tiene otra cita a esa fecha y hora.",
+        "error"
       );
+      return;
+    }
+
+    // Warn if the same patient already has a booking at the same time
+    if (patientDoubleBooking) {
+      const proceed = await showConfirm(
+        "Este paciente ya tiene una cita en ese horario. ¿Deseas continuar?",
+        "Posible doble cita",
+        "Continuar",
+        "Cancelar"
+      );
+
       if (!proceed) {
         showToast(
           "No se creó la cita por posible doble agendamiento.",
@@ -310,9 +349,12 @@ export default function Dashboard() {
     setNotes("");
   };
 
-  const deleteAppointment = (id) => {
-    const confirmDelete = window.confirm(
-      "¿Seguro que deseas eliminar esta cita? Esta acción no se puede deshacer."
+  const deleteAppointment = async (id) => {
+    const confirmDelete = await showConfirm(
+      "¿Seguro que deseas eliminar esta cita? Esta acción no se puede deshacer.",
+      "Eliminar cita",
+      "Eliminar",
+      "Cancelar"
     );
     if (!confirmDelete) return;
 
@@ -328,7 +370,7 @@ export default function Dashboard() {
     showToast("Estado de la cita actualizado.", "success");
   };
 
-  const handlePatientCancel = (id) => {
+  const handlePatientCancel = async (id) => {
     const appt = appointments.find((a) => a.id === id);
     if (!appt) return;
 
@@ -349,8 +391,11 @@ export default function Dashboard() {
       return;
     }
 
-    const confirmCancel = window.confirm(
-      "¿Seguro que deseas cancelar esta cita?"
+    const confirmCancel = await showConfirm(
+      "¿Seguro que deseas cancelar esta cita?",
+      "Cancelar cita",
+      "Sí, cancelar",
+      "No"
     );
     if (!confirmCancel) return;
 
@@ -727,6 +772,16 @@ export default function Dashboard() {
         >
           {toast.message}
         </div>
+      )}
+      {modalConfig && (
+        <SystemModal
+          message={modalConfig.message}
+          title={modalConfig.title}
+          confirmText={modalConfig.confirmText}
+          cancelText={modalConfig.cancelText}
+          onConfirm={modalConfig.onConfirm}
+          onCancel={modalConfig.onCancel}
+        />
       )}
     </div>
   );

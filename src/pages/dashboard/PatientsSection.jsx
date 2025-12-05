@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import SystemModal from "../../components/SystemModal";
 
 export default function PatientsSection() {
   const [patients, setPatients] = useState([
@@ -71,12 +72,34 @@ export default function PatientsSection() {
 
   const handleDelete = (id) => {
     const patient = patients.find((p) => p.id === id);
-    const confirmDelete = window.confirm(
-      `¿Seguro que deseas eliminar al paciente "${patient?.name || ""}"? Esta acción no se puede deshacer.`
-    );
-    if (!confirmDelete) return;
+    const message = `¿Seguro que deseas eliminar al paciente "${patient?.name || ""}"? Esta acción no se puede deshacer.`;
 
-    setPatients(patients.filter((p) => p.id !== id));
+    // show modal confirm
+    showConfirm(message, "Eliminar paciente", "Eliminar", "Cancelar").then((confirmed) => {
+      if (!confirmed) return;
+      setPatients(patients.filter((p) => p.id !== id));
+    });
+  };
+
+  const [modalConfig, setModalConfig] = useState(null);
+
+  const showConfirm = (message, title = "Confirmar", confirmText = "Sí", cancelText = "No") => {
+    return new Promise((resolve) => {
+      setModalConfig({
+        message,
+        title,
+        confirmText,
+        cancelText,
+        onConfirm: () => {
+          resolve(true);
+          setModalConfig(null);
+        },
+        onCancel: () => {
+          resolve(false);
+          setModalConfig(null);
+        },
+      });
+    });
   };
 
   return (
